@@ -255,11 +255,9 @@ void SectorView::Draw3D()
 	m_map->AddStarBillboard(trans * rot, vector3f(0.f, 0.f, -0.01), Color(0, 204, 0), 1.0);
 
 	// hyperspace target indicator
-	if (m_hyperspaceTarget != m_selected && (!m_inSystem || m_hyperspaceTarget != m_current)) {
-		trans = modelview * matrix4x4f::Translation(m_map->GetSystemPosition(m_hyperspaceTarget));
-		// move this disk 0.02 light years further so that it does not overlap the star, and selected indicator
-		m_map->AddStarBillboard(trans * rot, vector3f(0.f, 0.f, -0.02), Color(77, 77, 77), 1.0);
-	}
+	trans = modelview * matrix4x4f::Translation(m_map->GetSystemPosition(m_hyperspaceTarget));
+	// move this disk 0.02 light years further so that it does not overlap the star, and selected indicator
+	m_map->AddStarBillboard(trans * rot, vector3f(0.f, 0.f, -0.02), Color(77, 77, 77), 1.25);
 
 	// all the lines
 	if (m_setupLines) {
