@@ -39,6 +39,11 @@ public:
 
 	void GotoCurrentSystem();
 	void GotoSelectedSystem();
+	void GotoFirstSystem();
+	void GotoLastSystem();
+	void GotoPrevSystem();
+	void GotoNextSystem();
+	void GotoRouteSystem();
 	void GotoHyperspaceTarget();
 	void SetSelectedPath(const SystemPath &path);
 	void SwitchToPath(const SystemPath &path);
@@ -73,6 +78,10 @@ protected:
 		Action *mapToggleSelectionFollowView;
 		Action *mapWarpToCurrent;
 		Action *mapWarpToSelected;
+		Action *mapWarpToFirst;
+		Action *mapWarpToLast;
+		Action *mapWarpToPrev;
+		Action *mapWarpToNext;
 		Action *mapViewReset;
 
 		void RegisterBindings() override;
@@ -104,11 +113,16 @@ private:
 	ConnectionTicket m_onToggleSelectionFollowView;
 	ConnectionTicket m_onWarpToCurrent;
 	ConnectionTicket m_onWarpToSelected;
+	ConnectionTicket m_onWarpToFirst;
+	ConnectionTicket m_onWarpToLast;
+	ConnectionTicket m_onWarpToPrev;
+	ConnectionTicket m_onWarpToNext;
 	ConnectionTicket m_onViewReset;
 
 	Game &m_game;
 	std::unique_ptr<SectorMap> m_map;
 	std::vector<SystemPath> m_route;
+	size_t m_route_idx;
 
 };
 
