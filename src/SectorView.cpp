@@ -58,6 +58,11 @@ REGISTER_INPUT_BINDING(SectorView)
 	KEY_BINDING("BindMapWarpToCurrentSystem", SDLK_c, 0)
 	KEY_BINDING("BindMapWarpToSelectedSystem", SDLK_g, 0)
 
+	KEY_BINDING("BindMapWarpToFirstSystem", SDLK_HOME, 0)
+	KEY_BINDING("BindMapWarpToPrevSystem", SDLK_PAGEDOWN, 0)
+	KEY_BINDING("BindMapWarpToNextSystem", SDLK_PAGEUP, 0)
+	KEY_BINDING("BindMapWarpToLastSystem", SDLK_END, 0)
+
 #undef KEY_BINDING
 #undef AXIS_BINDING
 #undef BINDING_GROUP
@@ -69,6 +74,11 @@ void SectorView::InputBinding::RegisterBindings()
 	mapToggleSelectionFollowView = AddAction("BindMapToggleSelectionFollowView");
 	mapWarpToCurrent = AddAction("BindMapWarpToCurrentSystem");
 	mapWarpToSelected = AddAction("BindMapWarpToSelectedSystem");
+
+	mapWarpToFirst = AddAction("BindMapWarpToFirstSystem");
+	mapWarpToPrev = AddAction("BindMapWarpToPrevSystem");
+	mapWarpToNext = AddAction("BindMapWarpToNextSystem");
+	mapWarpToLast = AddAction("BindMapWarpToLastSystem");
 }
 
 // callbacks for the SectorMap
@@ -189,17 +199,33 @@ void SectorView::InitObject()
 		});
 	m_onWarpToCurrent =
 		InputBindings.mapWarpToCurrent->onPressed.connect([&]() {
-			m_map->GotoSystem(m_current);
+			GotoCurrentSystem();
 		});
 	m_onWarpToSelected =
 		InputBindings.mapWarpToSelected->onPressed.connect([&]() {
-			m_map->GotoSystem(m_selected);
+			GotoSelectedSystem();
 		});
 	m_onViewReset =
 		InputBindings.mapViewReset->onPressed.connect([&]() {
-			m_map->ResetView();
+			ResetView();
 		});
-}
+	m_onWarpToFirst =
+		InputBindings.mapWarpToFirst->onPressed.connect([&]() {
+			GotoFirstSystem();
+		});
+	m_onWarpToLast =
+		InputBindings.mapWarpToLast->onPressed.connect([&]() {
+			GotoLastSystem();
+		});
+	m_onWarpToNext =
+		InputBindings.mapWarpToNext->onPressed.connect([&]() {
+			GotoNextSystem();
+		});
+	m_onWarpToPrev =
+		InputBindings.mapWarpToPrev->onPressed.connect([&]() {
+			GotoPrevSystem();
+		});
+	}
 
 void SectorView::SaveToJson(Json &jsonObj)
 {
@@ -354,6 +380,7 @@ void SectorView::AddToRoute(const SystemPath &path)
 {
 	m_route.push_back(path);
 	m_setupLines = true;
+	m_route_idx++;
 }
 
 bool SectorView::RemoveRouteItem(const std::vector<SystemPath>::size_type element)
@@ -361,6 +388,9 @@ bool SectorView::RemoveRouteItem(const std::vector<SystemPath>::size_type elemen
 	if (element < m_route.size()) {
 		m_route.erase(m_route.begin() + element);
 		m_setupLines = true;
+		if (m_route_idx > m_route.size()) {
+			m_route_idx = m_route.size();
+		}
 		return true;
 	} else {
 		return false;
@@ -370,6 +400,7 @@ bool SectorView::RemoveRouteItem(const std::vector<SystemPath>::size_type elemen
 void SectorView::ClearRoute()
 {
 	m_route.clear();
+	m_route_idx = 0;
 	m_setupLines = true;
 }
 
@@ -652,4 +683,43 @@ void SectorView::ResetView()
 
 void SectorView::GotoCurrentSystem() { m_map->GotoSystem(m_current); }
 void SectorView::GotoSelectedSystem() { m_map->GotoSystem(m_selected); }
+void SectorView::GotoRouteSystem()
+{
+	if (!m_route.empty()) {
+		if (m_route_idx > m_route.size()) {
+			m_route_idx = m_route.size();
+		}
+		if (m_route_idx == 0) {
+			GotoCurrentSystem();
+			SetSelected(m_current);
+		} else {
+			m_map->GotoSystem(m_route[m_route_idx - 1]);
+			SetSelected(m_route[m_route_idx - 1]);
+		}
+	}
+}
+void SectorView::GotoFirstSystem()
+{
+	m_route_idx = 0;
+	GotoRouteSystem();
+}
+void SectorView::GotoLastSystem()
+{
+	m_route_idx = m_route.size();
+	GotoRouteSystem();
+}
+void SectorView::GotoPrevSystem()
+{
+	if (m_route_idx > 0) {
+		m_route_idx--;
+	}
+	GotoRouteSystem();
+}
+void SectorView::GotoNextSystem()
+{
+	if (m_route_idx < m_route.size()) {
+		m_route_idx++;
+	}
+	GotoRouteSystem();
+}
 void SectorView::GotoHyperspaceTarget() { m_map->GotoSystem(m_hyperspaceTarget); }
