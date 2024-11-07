@@ -264,10 +264,6 @@ local function displayRadar()
 			end
 		end)
 
-		if toggle_radar then
-			shouldDisplay2DRadar = not shouldDisplay2DRadar
-			Event.Queue('onChangeMFD', shouldDisplay2DRadar and 'radar' or 'scanner')
-		end
 		-- Draw the actual radar
 		if shouldDisplay2DRadar then
 			display2DRadar(center, size)
@@ -279,10 +275,15 @@ local function displayRadar()
 		local textpos = Vector2(center.x + size, center.y + size)
 		local textsize = ui.addStyledText(textpos, ui.anchor.right, ui.anchor.bottom, distance, colors.frame, pionillium.small, lui.HUD_RADAR_DISTANCE, colors.lightBlackBackground)
 		-- Draw the radar mode in bottom-left corner
-		-- TODO: use an icon?
+		-- TODO: use an icon
 		local mode = manual_zoom and '[M]' or '[A]'
-		textpos = Vector2(center.x - size, center.y + size)
-		ui.addStyledText(textpos, ui.anchor.left, ui.anchor.bottom, mode, colors.alertRed, pionillium.small, lui.HUD_RADAR_DISTANCE, colors.lightBlackBackground)
+		-- TODO: have button sized relative to radar size
+		-- Also, button currently does not react to mouse click nor shows tooltip on hover
+		ui.setCursorPos(Vector2(center.x - size - 25, center.y + size - 25))
+		if ui.button(mode, Vector2(25), nil, "Foo") or toggle_radar then
+			shouldDisplay2DRadar = not shouldDisplay2DRadar
+			Event.Queue('onChangeMFD', shouldDisplay2DRadar and 'radar' or 'scanner')
+		end
 	end
 end
 
