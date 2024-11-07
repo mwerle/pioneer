@@ -291,8 +291,10 @@ local function displayRadar()
 		local mode = manual_zoom and '[M]' or '[A]'
 		-- TODO: have button sized relative to radar size
 		-- Also, button currently does not react to mouse click nor shows tooltip on hover
-		ui.setCursorPos(Vector2(center.x - size - 25, center.y + size - 25))
-		if ui.button(mode, Vector2(25), nil, "Foo") or toggle_radar then
+		local button_size = size / 3.5 -- 25
+		ui.setCursorPos(Vector2(center.x - size - button_size, center.y + size - button_size))
+		local clicked = ui.button(mode, Vector2(button_size), ui.theme.buttonColors.default, "Does the thing")
+		if toggle_radar or clicked then
 			shouldDisplay2DRadar = not shouldDisplay2DRadar
 			Event.Queue('onChangeMFD', shouldDisplay2DRadar and 'radar' or 'scanner')
 		end
