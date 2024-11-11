@@ -352,7 +352,11 @@ local function displayRadar()
 end
 
 -- reset radar to default at game end
-Event.Register("onGameEnd", function() shouldDisplay2DRadar = false end)
+Event.Register("onGameEnd", function()
+	shouldDisplay2DRadar = false,
+	radar2d:resetZoom(),
+	radar3d:resetZoom()
+end)
 
 -- save/load preference
 require 'Serializer':Register("PiguiRadar",
