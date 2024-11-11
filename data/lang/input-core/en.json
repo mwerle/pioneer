@@ -131,6 +131,22 @@
     "description": "Descriptive name for the PrimaryFire action.",
     "message": "Primary Fire"
   },
+  "BIND_RADAR_TOGGLE_MODE": {
+    "description": "Descriptive name for the RadarToggle action.",
+    "message": "Toggle Radar between 2D and 3D modes"
+  },
+  "BIND_RADAR_ZOOM_IN": {
+    "description": "Descriptive name for the RadarZoomIn action.",
+    "message": "Manually zoom radar in"
+  },
+  "BIND_RADAR_ZOOM_OUT": {
+    "description": "Descriptive name for the RadarZoomOut action.",
+    "message": "Manually zoom radar out"
+  },
+  "BIND_RADAR_ZOOM_RESET": {
+    "description": "Descriptive name for the RadarZoomReset action.",
+    "message": "Reset 3D radar zoom to automatic mode"
+  },
   "BIND_RADIAL_HORIZONTAL_SELECTION": {
     "description": "Input axis name to select in the radial menu.",
     "message": "Radial Menu Left/Right"
