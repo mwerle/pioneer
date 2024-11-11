@@ -3,7 +3,7 @@
 
 local Game = require 'Game'
 local Event = require 'Event'
-local bindManager = require 'bind-manager'
+local Input = require 'Input'
 
 local Lang = require 'Lang'
 local lui = Lang.GetResource("ui-core");
@@ -24,12 +24,12 @@ local DEFAULT_RADAR_SIZE = 10000
 local shouldDisplay2DRadar = false
 local blobSize = 6.0
 
-local key_bindings = {
-	radar_toggle_mode = bindManager.registerAction('BindRadarToggleMode'),
-	radar_reset = bindManager.registerAction('BindRadarZoomReset'),
+local keys = {
+	radar_toggle_mode = Input.GetActionBinding('BindRadarToggleMode'),
+	radar_reset = Input.GetActionBinding('BindRadarZoomReset'),
 	-- TODO: Convert to Axis?
-	radar_zoom_in = bindManager.registerAction('BindRadarZoomIn'),
-	radar_zoom_out = bindManager.registerAction('BindRadarZoomOut'),
+	radar_zoom_in = Input.GetActionBinding('BindRadarZoomIn'),
+	radar_zoom_out = Input.GetActionBinding('BindRadarZoomOut'),
 }
 
 local function getColorFor(item)
@@ -266,7 +266,7 @@ local click_on_radar = false
 -- display either the 3D or the 2D radar, show a popup on right click to select
 local function displayRadar()
 	if ui.optionsWindow.isOpen or Game.CurrentView() ~= "world" then return end
-	player = player or Game.player
+	player = Game.player
 
 	-- only display if there actually *is* a radar installed
 	local equipped_radar = player:GetComponent("EquipSet"):GetInstalledOfType("sensor.radar")
@@ -280,16 +280,16 @@ local function displayRadar()
 
 	-- Handle keyboard
 	-- TODO: Convert to axis?
-	if key_bindings.radar_zoom_in.action:IsJustActive() then
+	if keys.radar_zoom_in:IsJustActive() then
 		zoom = 1
-	elseif key_bindings.radar_zoom_out.action:IsJustActive() then
+	elseif keys.radar_zoom_out:IsJustActive() then
 		zoom = -1
 	end
-	if key_bindings.radar_reset.action:IsJustActive() then
+	if keys.radar_reset:IsJustActive() then
 		zoom = 0
 		instrument:resetZoom()
 	end
-	if key_bindings.radar_toggle_mode.action:IsJustActive() then
+	if keys.radar_toggle_mode:IsJustActive() then
 		toggle_radar = true
 	end
 
