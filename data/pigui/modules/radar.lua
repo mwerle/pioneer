@@ -336,7 +336,7 @@ local function displayRadar()
 	-- Draw the radar mode button in bottom-left corner
 	-- Button currently does not react to mouse click nor shows tooltip on hover - WHY??
 	local button_size = size / 3.5 -- 25
-	ui.setCursorPos(Vector2(center.x - size - button_size, center.y + size - button_size - SCREEN_BORDER))
+	ui.setCursorPos(Vector2(center.x - ui.reticuleCircleRadius * 0.9, center.y + size - button_size - SCREEN_BORDER))
 	local clicked = ui.mainMenuButton(icons.equip_radar, "Toggle scanner mode", false, Vector2(button_size))
 	if toggle_radar or clicked then
 		shouldDisplay2DRadar = not shouldDisplay2DRadar
@@ -346,7 +346,8 @@ local function displayRadar()
 		-- local mode = manual_zoom and '[M]' or '[A]'
 		local mode = instrument:isAutoZoom() and 'A' or 'M'
 		button_size = button_size / 1.5
-		ui.setCursorPos(Vector2(center.x - size + 4, center.y + size - button_size - SCREEN_BORDER))
+		ui.sameLine()
+		ui.setCursorPos(Vector2(ui.getCursorPos().x, center.y + size - button_size - SCREEN_BORDER))
 		ui.button(mode, Vector2(button_size), false, "Zoom Mode")
 	end
 end
