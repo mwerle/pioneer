@@ -247,6 +247,10 @@
     "description": "Header for the GeneralViewControls input group.",
     "message": "General View Controls"
   },
+  "GROUP_RADAR_CONTROL": {
+    "description": "Group label for radar-related inputs",
+    "message": "Radar Control"
+  },
   "GROUP_LANDING_CONTROL": {
     "description": "Group label for landing-related inputs",
     "message": "Landing Control"
