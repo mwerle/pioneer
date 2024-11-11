@@ -3,6 +3,7 @@
 
 local Game = require 'Game'
 local Event = require 'Event'
+local bindManager = require 'bind-manager'
 
 local Lang = require 'Lang'
 local lui = Lang.GetResource("ui-core");
@@ -22,6 +23,14 @@ local DEFAULT_RADAR_SIZE = 10000
 
 local shouldDisplay2DRadar = false
 local blobSize = 6.0
+
+local key_bindings = {
+	radar_toggle_mode = bindManager.registerAction('BindRadarToggleMode'),
+	radar_reset = bindManager.registerAction('BindRadarZoomReset'),
+	-- TODO: Convert to Axis?
+	radar_zoom_in = bindManager.registerAction('BindRadarZoomIn'),
+	radar_zoom_out = bindManager.registerAction('BindRadarZoomOut'),
+}
 
 local function getColorFor(item)
 	local body = item.body
@@ -270,17 +279,17 @@ local function displayRadar()
 	local toggle_radar = false
 
 	-- Handle keyboard
-	-- TODO: figure out how to map the keys instead of hard-coding them
-	if ui.isKeyReleased(ui.keys.left) then
-		zoom = 1 -- zoom in
-	elseif ui.isKeyReleased(ui.keys.right) then
-		zoom = -1 -- zoom out
+	-- TODO: Convert to axis?
+	if key_bindings.radar_zoom_in.action:IsJustActive() then
+		zoom = 1
+	elseif key_bindings.radar_zoom_out.action:IsJustActive() then
+		zoom = -1
 	end
-	if ui.isKeyReleased(ui.keys.up) then
+	if key_bindings.radar_reset.action:IsJustActive() then
 		zoom = 0
 		instrument:resetZoom()
 	end
-	if ui.isKeyReleased(ui.keys.down) then
+	if key_bindings.radar_toggle_mode.action:IsJustActive() then
 		toggle_radar = true
 	end
 
