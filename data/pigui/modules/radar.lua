@@ -328,28 +328,75 @@ local function displayRadar()
 	-- Draw the actual radar
 	instrument:draw(center)
 
-	-- Draw the range indicator - base the offsets and sizes on the 2D radar
+	-- Draw the radar buttons and info - this needs to be in a window, otherwise the buttons don't work.
+	local window_width = ui.reticuleCircleRadius * 1.8
+	local window_height = radar2d.size / 3.5
+	local pos = Vector2(center.x - window_width / 2, center.y + radar2d.size - window_height - ui.getWindowPadding().y - SCREEN_BORDER)
+	-- ui.setCursorPos(pos)
+	ui.setNextWindowPos(pos, "Always")
+	-- ui.setNextWindowSize(Vector2(window_width, window_height), "Always")
+	local windowFlags = ui.WindowFlags {"NoTitleBar", "NoResize", "NoFocusOnAppearing", "NoBringToFrontOnFocus", "NoSavedSettings", "AlwaysAutoResize"}
+	ui.window("radar_buttons", windowFlags, function()
+		-- Draw mode-toggle button
+		local icon = shouldDisplay2DRadar and icons.radar_3d or icons.radar_2d
+		local clicked = ui.mainMenuButton(icon, "Toggle scanner mode", false, Vector2(window_height))
+		if toggle_radar or clicked then
+			shouldDisplay2DRadar = not shouldDisplay2DRadar
+		end
+
+		-- Draw zoom mode indicator
+		if not shouldDisplay2DRadar then
+			-- local mode = manual_zoom and '[M]' or '[A]'
+			local radar_mode = instrument:isAutoZoom() and ' A ' or ' M '
+			local button_size = window_height / 1.5
+			ui.sameLine()
+			ui.setCursorScreenPos(Vector2(ui.getCursorScreenPos().x, ui.getCursorScreenPos().y + window_height - button_size))
+			-- local pos2 = Vector2(ui.getCursorScreenPos().x, ui.getCursorScreenPos().y + window_height - button_size)
+			-- ui.setCursorPos(Vector2(ui.getCursorPos().x, center.y + size - button_size - SCREEN_BORDER))
+			-- ui.setCursorPos(Vector2(center.x, center.y - radar2d:getRadius()))
+			-- ui.button(radar_mode, Vector2(button_size), false, "Zoom Mode")
+			icon = instrument:isAutoZoom() and icons.radar_automatic or icons.radar_manual
+			-- icon = instrument:isAutoZoom() and icons.retrograde or icons.normal
+			ui.mainMenuButton(icon, "Radar Zoom Mode", false, Vector2(button_size))
+			--  ui.button(radar_mode, Vector2(button_size), false, "Zoom Mode")
+			-- ui.addStyledText(pos2, ui.anchor.left, ui.anchor.bottom, radar_mode, colors.frame, ui.fonts.orbiteer.small, "Zoom Mode", colors.lightBlackBackground)
+		end
+
+		-- Draw current radar range
+		-- ui.sameLine(center.x + window_width / 2)
+		-- local pos3= Vector2(pos.x + window_width / 2, pos.y + window_height - SCREEN_BORDER)
+		-- local distance = ui.Format.Distance(instrument:getZoom())
+		-- local textpos = Vector2(center.x + ui.reticuleCircleRadius * 0.9, center.y + window_height - SCREEN_BORDER - 2)
+		-- ui.addStyledText(textpos, ui.anchor.right, ui.anchor.bottom, distance, colors.frame, pionillium.small, lui.HUD_RADAR_DISTANCE, colors.lightBlackBackground)
+	end) -- window
+
+	-- -- Draw the range indicator - base the offsets and sizes on the 2D radar
 	local size = radar2d:getRadius()
 	local distance = ui.Format.Distance(instrument:getZoom())
-	local textpos = Vector2(center.x + ui.reticuleCircleRadius * 0.9, center.y + size - SCREEN_BORDER)
+	local textpos = Vector2(center.x + ui.reticuleCircleRadius * 0.9, center.y + size - SCREEN_BORDER - 2)
 	local textsize = ui.addStyledText(textpos, ui.anchor.right, ui.anchor.bottom, distance, colors.frame, pionillium.small, lui.HUD_RADAR_DISTANCE, colors.lightBlackBackground)
-	-- Draw the radar mode button in bottom-left corner
-	-- Button currently does not react to mouse click nor shows tooltip on hover - WHY??
-	local button_size = size / 3.5 -- 25
-	ui.setCursorPos(Vector2(center.x - ui.reticuleCircleRadius * 0.9, center.y + size - button_size - SCREEN_BORDER))
-	local clicked = ui.mainMenuButton(icons.equip_radar, "Toggle scanner mode", false, Vector2(button_size))
-	if toggle_radar or clicked then
-		shouldDisplay2DRadar = not shouldDisplay2DRadar
-	end
-	-- Draw zoom mode indicator
-	if not shouldDisplay2DRadar then
-		-- local mode = manual_zoom and '[M]' or '[A]'
-		local mode = instrument:isAutoZoom() and 'A' or 'M'
-		button_size = button_size / 1.5
-		ui.sameLine()
-		ui.setCursorPos(Vector2(ui.getCursorPos().x, center.y + size - button_size - SCREEN_BORDER))
-		ui.button(mode, Vector2(button_size), false, "Zoom Mode")
-	end
+	-- -- Draw the radar mode button in bottom-left corner
+	-- -- Button currently does not react to mouse click nor shows tooltip on hover - WHY??
+	-- local button_size = size / 3.5 -- 25
+	-- ui.setCursorPos(Vector2(center.x - ui.reticuleCircleRadius * 0.9, center.y + size - button_size - SCREEN_BORDER))
+	-- local icon = shouldDisplay2DRadar and icons.radar_3d or icons.radar_2d
+	-- -- local icon = icons.random
+	-- -- local icon = shouldDisplay2DRadar and icons.body_semi_major_axis or icons.inclination
+	-- local clicked = ui.mainMenuButton(icon, "Toggle scanner mode", false, Vector2(button_size))
+	-- if toggle_radar or clicked then
+	-- 	shouldDisplay2DRadar = not shouldDisplay2DRadar
+	-- end
+	-- -- Draw zoom mode indicator
+	-- if not shouldDisplay2DRadar then
+	-- 	-- local mode = manual_zoom and '[M]' or '[A]'
+	-- 	local radar_mode = instrument:isAutoZoom() and ' A ' or ' M '
+	-- 	-- button_size = button_size / 1.5
+	-- 	ui.sameLine()
+		-- pos = Vector2(ui.getCursorPos().x, center.y + window_height - SCREEN_BORDER - 2) -- 2: styled text background border
+	-- 	-- ui.setCursorPos(Vector2(ui.getCursorPos().x, center.y + size - button_size - SCREEN_BORDER))
+	-- 	-- ui.button(mode, Vector2(button_size), false, "Zoom Mode")
+		-- ui.addStyledText(pos, ui.anchor.left, ui.anchor.bottom, radar_mode, colors.frame, ui.fonts.orbiteer.small, "Zoom Mode", colors.lightBlackBackground)
+	-- end
 end
 
 -- reset radar to default at game end
@@ -368,7 +415,6 @@ ui.registerModule("game", {
 	id = "game-view-radar-module",
 	draw = displayRadar,
 	debugReload = function()
-		print("Radar module reloading..")
 		package.reimport()
 	end
 })
