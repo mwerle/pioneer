@@ -331,9 +331,10 @@ local function displayRadar()
 	-- Draw the radar buttons and info - this needs to be in a window, otherwise the buttons don't work.
 	local window_width = ui.reticuleCircleRadius * 1.8
 	local window_height = radar2d.size / 3.5
-	local pos = Vector2(center.x - window_width / 2, center.y + radar2d.size - window_height - ui.getWindowPadding().y - SCREEN_BORDER)
+	local pos = Vector2(center.x - window_width / 2, center.y + radar2d.size - window_height - SCREEN_BORDER)
 	-- ui.setCursorPos(pos)
 	ui.setNextWindowPos(pos, "Always")
+	ui.setNextWindowPadding(Vector2(0))
 	-- ui.setNextWindowSize(Vector2(window_width, window_height), "Always")
 	local windowFlags = ui.WindowFlags {"NoTitleBar", "NoResize", "NoFocusOnAppearing", "NoBringToFrontOnFocus", "NoSavedSettings", "AlwaysAutoResize"}
 	ui.window("radar_buttons", windowFlags, function()
@@ -347,27 +348,29 @@ local function displayRadar()
 		-- Draw zoom mode indicator
 		if not shouldDisplay2DRadar then
 			-- local mode = manual_zoom and '[M]' or '[A]'
-			local radar_mode = instrument:isAutoZoom() and ' A ' or ' M '
+			-- local radar_mode = instrument:isAutoZoom() and ' A ' or ' M '
 			local button_size = window_height / 1.5
 			ui.sameLine()
-			ui.setCursorScreenPos(Vector2(ui.getCursorScreenPos().x, ui.getCursorScreenPos().y + window_height - button_size))
+			ui.addCursorPos(Vector2(0, window_height - button_size))
 			-- local pos2 = Vector2(ui.getCursorScreenPos().x, ui.getCursorScreenPos().y + window_height - button_size)
 			-- ui.setCursorPos(Vector2(ui.getCursorPos().x, center.y + size - button_size - SCREEN_BORDER))
 			-- ui.setCursorPos(Vector2(center.x, center.y - radar2d:getRadius()))
 			-- ui.button(radar_mode, Vector2(button_size), false, "Zoom Mode")
 			icon = instrument:isAutoZoom() and icons.radar_automatic or icons.radar_manual
 			-- icon = instrument:isAutoZoom() and icons.retrograde or icons.normal
-			ui.mainMenuButton(icon, "Radar Zoom Mode", false, Vector2(button_size))
+			ui.mainMenuButton(icon, "Radar Zoom Mode", ui.theme.buttonColors.disabled, Vector2(button_size))
 			--  ui.button(radar_mode, Vector2(button_size), false, "Zoom Mode")
 			-- ui.addStyledText(pos2, ui.anchor.left, ui.anchor.bottom, radar_mode, colors.frame, ui.fonts.orbiteer.small, "Zoom Mode", colors.lightBlackBackground)
 		end
 
+		ui.sameLine()
 		-- Draw current radar range
 		-- ui.sameLine(center.x + window_width / 2)
 		-- local pos3= Vector2(pos.x + window_width / 2, pos.y + window_height - SCREEN_BORDER)
-		-- local distance = ui.Format.Distance(instrument:getZoom())
-		-- local textpos = Vector2(center.x + ui.reticuleCircleRadius * 0.9, center.y + window_height - SCREEN_BORDER - 2)
-		-- ui.addStyledText(textpos, ui.anchor.right, ui.anchor.bottom, distance, colors.frame, pionillium.small, lui.HUD_RADAR_DISTANCE, colors.lightBlackBackground)
+		local distance = ui.Format.Distance(instrument:getZoom())
+		local textpos = Vector2(center.x + ui.reticuleCircleRadius * 0.9, center.y + window_height - SCREEN_BORDER - 2)
+		-- local textpos = ui.getCursorPos()
+		ui.addStyledText(textpos, ui.anchor.right, ui.anchor.bottom, distance, colors.frame, pionillium.small, lui.HUD_RADAR_DISTANCE, colors.lightBlackBackground)
 	end) -- window
 
 	-- -- Draw the range indicator - base the offsets and sizes on the 2D radar
