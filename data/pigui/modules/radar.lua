@@ -53,6 +53,7 @@ local function getColorFor(item)
 end
 
 local radar2d = {
+	icon = icons.radar_2d,
 	zoom = DEFAULT_RADAR_SIZE,
 	size = ui.reticuleCircleRadius * 0.66,
 	getRadius = function(self) return self.size end,
@@ -74,6 +75,7 @@ radar.minZoom = MIN_RADAR_SIZE
 radar.maxZoom = MAX_RADAR_SIZE
 radar.zoom = DEFAULT_RADAR_SIZE
 local radar3d = {
+	icon = icons.radar_3d,
 	auto_zoom = true,
 	size = Vector2(ui.reticuleCircleRadius * 1.8, ui.reticuleCircleRadius * 1.4),
 	getRadius = function(self) return self.size.x end,
@@ -339,8 +341,8 @@ local function displayRadar()
 	ui.setNextWindowSize(Vector2(window_width, window_height), "Always")
 	ui.window("radar_buttons", windowFlags, function()
 		-- Draw radar mode toggle button
-		local icon = shouldDisplay2DRadar and icons.radar_3d or icons.radar_2d
-		local clicked = ui.mainMenuButton(icon, "Toggle scanner mode", false, Vector2(window_height))
+		local icon = shouldDisplay2DRadar and radar3d.icon or radar2d.icon
+		local clicked = ui.mainMenuButton(icon, lui.HUD_RADAR_TOGGLE_MODE, false, Vector2(window_height))
 		if toggle_radar or clicked then
 			shouldDisplay2DRadar = not shouldDisplay2DRadar
 		end
@@ -348,15 +350,16 @@ local function displayRadar()
 		-- Draw zoom mode indicator
 		if not shouldDisplay2DRadar then
 			local button_size = window_height / 1.5
+			local tt = radar3d.auto_zoom and lui.HUD_RADAR_ZOOM_MODE_AUTOMATIC or lui.HUD_RADAR_ZOOM_MODE_MANUAL
 			ui.sameLine()
 			ui.addCursorPos(Vector2(0, window_height - button_size))
 			icon = instrument:isAutoZoom() and icons.radar_automatic or icons.radar_manual
-			ui.mainMenuButton(icon, "Radar Zoom Mode", ui.theme.buttonColors.disabled, Vector2(button_size))
+			ui.mainMenuButton(icon, tt, ui.theme.buttonColors.disabled, Vector2(button_size))
 		end
 
 		-- Draw radar range
 		local distance = ui.Format.Distance(instrument:getZoom())
-		local textpos = ui.getWindowPos() + Vector2(window_width, window_height) --ui.getCursorPos()
+		local textpos = ui.getWindowPos() + Vector2(window_width, window_height)
 		ui.addStyledText(textpos, ui.anchor.right, ui.anchor.bottom, distance, colors.frame, pionillium.small, lui.HUD_RADAR_DISTANCE, colors.lightBlackBackground)
 	end) -- window
 end -- function displayRadar()
