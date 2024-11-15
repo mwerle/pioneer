@@ -42,13 +42,6 @@ REGISTER_INPUT_BINDING(WorldView)
 	input->AddActionBinding("BindToggleHudMode", group, Action({ SDLK_TAB }));
 	input->AddActionBinding("BindIncreaseTimeAcceleration", group, Action({ SDLK_PAGEUP }));
 	input->AddActionBinding("BindDecreaseTimeAcceleration", group, Action({ SDLK_PAGEDOWN }));
-	// universal axes for selecting an item from a radial menu
-	input->AddAxisBinding("BindRadialHorizontalSelection", group, Axis({}, { SDLK_LEFT }, { SDLK_RIGHT }));
-	input->AddAxisBinding("BindRadialVerticalSelection", group, Axis({}, { SDLK_UP }, { SDLK_DOWN }));
-	// radial menu activators
-	input->AddActionBinding("BindFlightAssistRadial", group, Action{});
-	input->AddActionBinding("BindFixheadingRadial", group, Action{});
-	input->AddActionBinding("BindTargetRadial", group, Action{});
 }
 
 void WorldView::InputBinding::RegisterBindings()
@@ -56,11 +49,6 @@ void WorldView::InputBinding::RegisterBindings()
 	toggleHudMode = AddAction("BindToggleHudMode");
 	increaseTimeAcceleration = AddAction("BindIncreaseTimeAcceleration");
 	decreaseTimeAcceleration = AddAction("BindDecreaseTimeAcceleration");
-	AddAxis("BindRadialVerticalSelection");
-	AddAxis("BindRadialHorizontalSelection");
-	AddAction("BindFlightAssistRadial");
-	AddAction("BindFixheadingRadial");
-	AddAction("BindTargetRadial");
 }
 
 WorldView::WorldView(Game *game) :

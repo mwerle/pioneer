@@ -3,9 +3,10 @@
 
 local ui = require 'pigui'
 local Engine = require 'Engine'
+local Event = require 'Event'
 local Game = require 'Game'
+local Input = require 'Input'
 local Vector2 = _G.Vector2
-local bindManager = require 'bind-manager'
 
 -- cache ui
 local pionillium = ui.fonts.pionillium
@@ -41,11 +42,31 @@ local player = nil ---@type Player
 local showNavigationalNumbers = true
 
 -- to interact with actions and axes in the input system
+local input_group = 'ShipHUD.RadialMenu'
 local bindings = {
-	assistRadial = bindManager.registerAction('BindFlightAssistRadial'),
-	fixheadingRadial = bindManager.registerAction('BindFixheadingRadial'),
-	targetRadial = bindManager.registerAction('BindTargetRadial'),
+	assistRadial = Input.RegisterActionBinding('BindFlightAssistRadial', input_group, { activator = { key = Input.keys.z } } ),
+	fixheadingRadial = Input.RegisterActionBinding('BindFixHeadingRadial', input_group, { activator = { key = Input.keys.x } } ),
+	targetRadial = Input.RegisterActionBinding('BindTargetRadial', input_group, { activator = { key = Input.keys.c } } ),
+	radialHorizontalSelection = Input.RegisterAxisBinding('BindRadialHorizontalSelection', input_group),
+	radialVerticalSelection = Input.RegisterAxisBinding('BindRadialVerticalSelection', input_group),
 }
+local input_frame = Input.CreateInputFrame("ShipHudRadar", true)
+input_frame:AddAction(bindings.assistRadial)
+input_frame:AddAction(bindings.fixheadingRadial)
+input_frame:AddAction(bindings.targetRadial)
+-- TODO: These should be in a separate input frame which is only activated when a radial menu is displayed
+input_frame:AddAxis(bindings.radialHorizontalSelection)
+input_frame:AddAxis(bindings.radialVerticalSelection)
+
+bindings.assistRadial:OnPressed(function()
+	print("DBG: assistRadial pressed.")
+end)
+bindings.fixheadingRadial:OnPressed(function()
+	print("DBG: fixheadingRadial pressed.")
+end)
+bindings.targetRadial:OnPressed(function()
+	print("DBG: targetRadial pressed.")
+end)
 
 -- display the pitch indicator on the right inside of the reticule circle
 local function displayReticulePitch(pitch_degrees)
@@ -324,8 +345,8 @@ local function displayDetailData(target, radius, colorLight, colorDark, tooltip,
 	local nameSize = ui.addStyledText(uiPos, ui.anchor.left, ui.anchor.baseline, target.label, colorDark, pionillium.medium, tooltip, colors.lightBlackBackground)
 	local isHovered = ui.isMouseHoveringRect(uiPos - Vector2(0, pionillium.medium.size), uiPos + nameSize - Vector2(0, pionillium.medium.size))
 	                  and ui.isMouseClicked(1) and ui.noModifierHeld()
-	if isHovered or bindings.targetRadial.action:IsJustActive() then
-		local action_binding = bindings.targetRadial.action:IsActive() and bindings.targetRadial.action
+	if isHovered or bindings.targetRadial:IsJustActive() then
+		local action_binding = bindings.targetRadial:IsActive() and bindings.targetRadial
 		ui.openDefaultRadialMenu("game", target, uiPos, action_binding)
 	end
 	-- current distance, relative speed
@@ -595,10 +616,18 @@ local function flightAssistButton(pos)
 	-- main icon
 	ui.addIcon(pos, main_icon, colors.white, Vector2(icon_size, icon_size), ui.anchor.center, ui.anchor.center, tooltip)
 
-	-- radial menu
-	if ui.isMouseClicked(0) and ui.canClickOnScreenObjectHere() and (ui.getMousePos() - pos):length() < button_size / 2.0
-		or bindings.assistRadial.action:IsJustActive() then
+	-- radial menus
+	local openRadial = nil
+	local isMouseOverButton = ui.canClickOnScreenObjectHere() and (ui.getMousePos() - pos):length() < button_size / 2.0
+	if ui.noModifierHeld() then
+		if bindings.assistRadial:IsJustActive() or isMouseOverButton and ui.isMouseClicked(0) then
+			openRadial = "assist"
+		elseif bindings.fixheadingRadial:IsJustActive() or isMouseOverButton and ui.isMouseClicked(1) then
+			openRadial = "fixheading"
+		end
+	end
 
+	if openRadial == "assist" then
 		local icon_left = { icon = icons.backward, tooltip = "NO_ACTION", action = function(_) end, color = color_inactive }
 		local icon_right = { icon = icons.backward, tooltip = "NO_ACTION", action = function(_) end, color = color_inactive }
 		local icon_up = { icon = icons.backward, tooltip = "NO_ACTION", action = function(_) end, color = color_inactive }
@@ -698,16 +727,17 @@ local function flightAssistButton(pos)
 		end
 
 		-- consider keyboard / joystick activation
-		local action_binding = bindings.assistRadial.action:IsActive() and bindings.assistRadial.action
+		local action_binding = bindings.assistRadial:IsActive() and bindings.assistRadial
 
 		-- create quad menu
 		local my_quad_menu = { icon_right, icon_down, icon_left, icon_up }
 		ui.openRadialMenu("game", nil, 0, button_size, my_quad_menu, 0, pos, action_binding)
-	elseif ui.isMouseClicked(1) and ui.canClickOnScreenObjectHere() and (ui.getMousePos() - pos):length() < button_size / 2.0
-		or bindings.fixheadingRadial.action:IsJustActive() then
+
+		-- end openRadial == "assist"
+	elseif openRadial == "fixheading" then
 		local frame = player.frameBody
 		if frame then
-			local action_binding = bindings.fixheadingRadial.action:IsActive() and bindings.fixheadingRadial.action
+			local action_binding = bindings.fixheadingRadial:IsActive() and bindings.fixheadingRadial
 			ui.openRadialMenu("game", frame, 1, icon_size, radial_menu_actions_orbital, icon_padding, pos, action_binding)
 		end
 	end
@@ -832,6 +862,15 @@ local function displayReticule()
 		displayFrameData(frame, radius)
 	end
 end
+
+-- view has changed, update input frame
+Event.Register("onViewChanged", function()
+	if Game.CurrentView() == "world" then
+		input_frame:AddToStack()
+	elseif Game.PreviousView() == "world" then
+		input_frame:RemoveFromStack()
+	end
+end)
 
 gameView.registerModule("reticule", {
 	showInHyperspace = false,
