@@ -439,13 +439,19 @@ local function getObjectData(obj)
 			-- TODO: different levels of hypercloud analyser should provide
 			-- increasingly detailed amounts of information.
 			if hypercloud_level > 0 and ship then
-				local _,systemName = ship:GetHyperspaceDestination()
-				local systemLabel = body:IsArrival() and luc.HUD_HYPERSPACE_ORIGIN or luc.HUD_HYPERSPACE_DESTINATION
+				local systemName, systemLabel
+				if body:IsArrival() then
+					_,systemName = body:GetHyperspaceOrigin()
+					systemLabel = luc.HUD_HYPERSPACE_ORIGIN
+				else
+					_,systemName = body:GetHyperspaceDestination()
+					systemLabel = luc.HUD_HYPERSPACE_DESTINATION
+				end
 
 				table.insert(data, { name = luc.SHIP_TYPE, value = ship:GetShipType() })
 				table.insert(data, { name = luc.HUD_MASS, value = formatMass(ship.staticMass) })
 				table.insert(data, { name = systemLabel, value = systemName })
-				table.insert(data, { name = luc.HUD_ARRIVAL_DATE, value = ui.Format.Datetime(body:GetDueDate()) })
+				table.insert(data, { name = luc.DATE, value = ui.Format.Datetime(body:GetDueDate()) })
 			end
 		else
 			data = {}

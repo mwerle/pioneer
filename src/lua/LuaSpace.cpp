@@ -94,7 +94,7 @@ static Body *_maybe_wrap_ship_with_cloud(Ship *ship, SystemPath *path, double du
 	if (due <= 0) return ship;
 
 	HyperspaceCloud *cloud = new HyperspaceCloud(ship, due, true);
-	ship->SetHyperspaceDest(path);
+	cloud->SetHyperspaceSource(path);
 	ship->SetFlightState(Ship::HYPERSPACE);
 
 	return cloud;
@@ -189,6 +189,9 @@ static int l_space_spawn_ship(lua_State *l)
 	_unpack_hyperspace_args(l, 4, source, dest, due);
 
 	Ship *ship = new Ship(type);
+	if (dest) {
+		ship->SetHyperspaceDest(dest);
+	}
 	assert(ship);
 
 	Body *thing = _maybe_wrap_ship_with_cloud(ship, source, due);

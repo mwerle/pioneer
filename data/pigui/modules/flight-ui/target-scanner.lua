@@ -115,14 +115,11 @@ end
 
 local function displayCloudScanner(min, max)
 	local hypercloud_level = (player["hypercloud_analyzer_cap"] or 0)
-	local target = player:GetNavTarget()
+	local target = player:GetNavTarget() --- @cast target HyperspaceCloud
 
 	if hypercloud_level == 0 or not target or not target:IsHyperspaceCloud() then
 		return
 	end
-
-	local arrival = target:IsArrival()
-	local ship = target:GetShip()
 
 	local height = ui.getTextLineHeightWithSpacing(font_heading)
 		+ ui.getTextLineHeightWithSpacing() * 4
@@ -140,19 +137,23 @@ local function displayCloudScanner(min, max)
 		ui.withFont(font_heading, function()
 			ui.text(target:GetLabel())
 		end)
+
+		local ship = target:GetShip()
 		if ship then
-			-- NOTE: ships in arrival clouds have their destination set to the
-			-- source system. This should probably get refactored some time in
-			-- the future. While clever reuse of existing state, it makes for
-			-- challenging maintenance and understanding of the code.
-			local _,systemName = ship:GetHyperspaceDestination()
-			local systemLabel = arrival and lui.HUD_HYPERSPACE_ORIGIN or lui.HUD_HYPERSPACE_DESTINATION
+			local systemName, systemLabel
+			if target:IsArrival() then
+				_,systemName = target:GetHyperspaceOrigin()
+				systemLabel = lui.HUD_HYPERSPACE_ORIGIN
+			else
+				_,systemName = target:GetHyperspaceDestination()
+				systemLabel = lui.HUD_HYPERSPACE_DESTINATION
+			end
 
 			local data = {
 				{ name = lui.SHIP_TYPE, value = ship:GetShipType()},
 				{ name = lui.HUD_MASS, value = formatMass(ship.staticMass) },
-				{ name = systemLabel, value = systemName },
-				{ name = lui.HUD_ARRIVAL_DATE, value = ui.Format.Datetime(target:GetDueDate()) }
+				{ name = systemLabel, value = systemName or "error" },
+				{ name = lui.DATE, value = ui.Format.Datetime(target:GetDueDate()) }
 			}
 			ui.withFont(font_content, function()
 				drawTable(data)
