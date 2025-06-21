@@ -26,6 +26,11 @@ std::unique_ptr<Graphics::Material> HyperspaceCloud::s_cloudMat;
 std::unique_ptr<Graphics::MeshObject> HyperspaceCloud::s_cloudMeshArriving;
 std::unique_ptr<Graphics::MeshObject> HyperspaceCloud::s_cloudMeshLeaving;
 
+static const SystemPath& getCurrentSystemPath()
+{
+	return Pi::game->GetSpace()->GetStarSystem()->GetPath();
+}
+
 HyperspaceCloud::HyperspaceCloud(Ship *s, double dueDate, bool isArrival) :
 	m_isBeingKilled(false)
 {
@@ -37,6 +42,7 @@ HyperspaceCloud::HyperspaceCloud(Ship *s, double dueDate, bool isArrival) :
 	m_vel = (s ? s->GetVelocity() : vector3d(0.0));
 	m_birthdate = Pi::game->GetTime();
 	m_due = dueDate;
+	m_origin = getCurrentSystemPath();
 	SetIsArrival(isArrival);
 }
 
@@ -50,6 +56,12 @@ HyperspaceCloud::HyperspaceCloud(const Json &jsonObj, Space *space) :
 		m_vel = hyperspaceCloudObj["vel"];
 		m_birthdate = hyperspaceCloudObj["birth_date"];
 		m_due = hyperspaceCloudObj["due"];
+		if (hyperspaceCloudObj.count("origin_system") > 0 && hyperspaceCloudObj["origin_system"].is_object()) {
+			Json pathObj = hyperspaceCloudObj["origin_system"];
+			m_origin = static_cast<SystemPath>(SystemPath::FromJson(pathObj));
+		} else {
+			m_origin = space->GetStarSystem()->GetPath();
+		}
 
 		m_ship = nullptr;
 		if (hyperspaceCloudObj["ship"].is_object()) {
@@ -93,6 +105,9 @@ void HyperspaceCloud::SaveToJson(Json &jsonObj, Space *space)
 		hyperspaceCloudObj["ship"] = shipObj; // Add ship object to hyperpace cloud object.
 	}
 
+	Json pathObj = Json::object();
+	m_origin.ToJson(pathObj);
+	hyperspaceCloudObj["origin_system"] = pathObj;
 	jsonObj["hyperspace_cloud"] = hyperspaceCloudObj; // Add hyperspace cloud object to supplied object.
 }
 
@@ -158,6 +173,21 @@ void HyperspaceCloud::UpdateInterpTransform(double alpha)
 	m_interpOrient = matrix3x3d::Identity();
 	const vector3d oldPos = GetPosition() - m_vel * Pi::game->GetTimeStep();
 	m_interpPos = alpha * GetPosition() + (1.0 - alpha) * oldPos;
+}
+
+void HyperspaceCloud::SetHyperspaceSource(const SystemPath &source)
+{
+	m_origin = source;
+}
+
+const SystemPath &HyperspaceCloud::GetHyperspaceSource() const
+{
+	return m_origin;
+}
+
+const SystemPath &HyperspaceCloud::GetHyperspaceDest() const
+{
+	return m_ship? m_ship->GetHyperspaceDest() : getCurrentSystemPath();
 }
 
 void HyperspaceCloud::Render(Renderer *renderer, const Camera *camera, const vector3d &viewCoords, const matrix4x4d &viewTransform)

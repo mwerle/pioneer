@@ -121,7 +121,7 @@ end
 
 local function displayCloudScanner(min, max)
 	local hypercloud_level = (player["hypercloud_analyzer_cap"] or 0)
-	local target = player:GetNavTarget()
+	local target = player:GetNavTarget() --HyperspaceCloud
 
 	if hypercloud_level == 0 or not target or not target:IsHyperspaceCloud() then
 		return
@@ -147,12 +147,18 @@ local function displayCloudScanner(min, max)
 			-- source system. This should probably get refactored some time in
 			-- the future. While clever reuse of existing state, it makes for
 			-- challenging maintenance and understanding of the code.
-			local _,systemName = ship:GetHyperspaceDestination()
-			local systemLabel = arrival and lui.HUD_HYPERSPACE_ORIGIN or lui.HYPERSPACE_DESTINATION
+			local systemName, systemLabel
+			if arrival then
+				_,systemName = target:GetHyperspaceOrigin()
+				systemLabel = lui.HUD_HYPERSPACE_ORIGIN
+			else
+				_,systemName = target:GetHyperspaceDestination()
+				systemLabel = lui.HUD_HYPERSPACE_DESTINATION
+			end
 
 			local data = {
 				{ name = lui.HUD_MASS, value = formatMass(ship.staticMass) },
-				{ name = systemLabel, value = systemName },
+				{ name = systemLabel, value = systemName or "error" },
 				{ name = lui.DATE, value = ui.Format.Datetime(target:GetDueDate()) }
 			}
 			ui.withFont(font_content, function()

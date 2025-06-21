@@ -5,6 +5,7 @@
 #define _HYPERSPACECLOUD_H
 
 #include "Body.h"
+#include "galaxy/SystemPath.h"
 
 class Frame;
 class Ship;
@@ -34,6 +35,10 @@ public:
 	bool IsArrival() const { return m_isArrival; }
 	void UpdateInterpTransform(double alpha) override;
 
+	void SetHyperspaceSource(const SystemPath& source);
+	const SystemPath& GetHyperspaceSource() const;
+	const SystemPath& GetHyperspaceDest() const;
+
 protected:
 	void SaveToJson(Json &jsonObj, Space *space) override;
 
@@ -46,6 +51,8 @@ private:
 	double m_due;
 	bool m_isArrival;
 	bool m_isBeingKilled;
+
+	SystemPath m_origin;
 
 	static std::unique_ptr<Graphics::Material> s_cloudMat;
 	static std::unique_ptr<Graphics::MeshObject> s_cloudMeshArriving;

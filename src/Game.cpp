@@ -513,7 +513,7 @@ void Game::SwitchToHyperspace()
 		m_player->NotifyRemoved(cloud);
 
 		// turn the cloud around
-		cloud->GetShip()->SetHyperspaceDest(m_hyperspaceSource);
+		cloud->SetHyperspaceSource(m_hyperspaceSource);
 		cloud->SetIsArrival(true);
 
 		// and remember it
@@ -587,6 +587,7 @@ void Game::SwitchToNormalSpace()
 
 	// place the exit cloud
 	HyperspaceCloud *cloud = new HyperspaceCloud(0, Pi::game->GetTime(), true);
+	cloud->SetHyperspaceSource(m_hyperspaceSource);
 	cloud->SetFrame(m_space->GetRootFrame());
 	cloud->SetPosition(m_player->GetPosition());
 	m_space->AddBody(cloud);

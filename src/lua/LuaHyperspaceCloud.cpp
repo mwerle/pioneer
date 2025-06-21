@@ -69,6 +69,61 @@ static int l_hyperspace_cloud_get_due_date(lua_State *l)
 	return 1;
 }
 
+/* Method: SetHyperspaceOrigin
+ *
+ * Set the source system for the hyperspace cloud.
+ *
+ * Returns:
+ *
+ */
+static int l_hyperspace_cloud_set_origin(lua_State *l)
+{
+	HyperspaceCloud *cloud = LuaObject<HyperspaceCloud>::CheckFromLua(1);
+	SystemPath *path = LuaObject<SystemPath>::CheckFromLua(2);
+	cloud->SetHyperspaceSource(path);
+	return 0;
+}
+
+/* Method: GetHyperspaceOrigin
+ *
+ * Return the system in which the ship entered hyperspace.
+ *
+ * Returns:
+ *
+ *    path - the <SystemPath> of the origin system
+ *    name - a string of the name of the origin system
+ *
+ */
+static int l_hyperspace_cloud_get_origin(lua_State *l)
+{
+	HyperspaceCloud *cloud = LuaObject<HyperspaceCloud>::CheckFromLua(1);
+	const SystemPath &path = cloud->GetHyperspaceSource();
+	RefCountedPtr<const Sector> s = Pi::game->GetGalaxy()->GetSector(path);
+	LuaObject<SystemPath>::PushToLua(path);
+	LuaPush(l, s->m_systems[path.systemIndex].GetName());
+	return 2;
+}
+
+/* Method: GetHyperspaceDestination
+ *
+ * Return the system in which the ship has exited / will exit hyperspace.
+ *
+ * Returns:
+ *
+ *    path - the <SystemPath> of the destination system
+ *    name - a string of the name of the destination system
+ *
+ */
+static int l_hyperspace_cloud_get_destination(lua_State *l)
+{
+	HyperspaceCloud *cloud = LuaObject<HyperspaceCloud>::CheckFromLua(1);
+	const SystemPath &path = cloud->GetHyperspaceDest();
+	RefCountedPtr<const Sector> s = Pi::game->GetGalaxy()->GetSector(path);
+	LuaObject<SystemPath>::PushToLua(path);
+	LuaPush(l, s->m_systems[path.systemIndex].GetName());
+	return 2;
+}
+
 template <>
 const char *LuaObject<HyperspaceCloud>::s_type = "HyperspaceCloud";
 
@@ -81,6 +136,10 @@ void LuaObject<HyperspaceCloud>::RegisterClass()
 		{ "IsArrival", l_hyperspace_cloud_is_arrival },
 		{ "GetShip", l_hyperspace_cloud_get_ship },
 		{ "GetDueDate", l_hyperspace_cloud_get_due_date },
+
+		{ "SetHyperspaceOrigin", l_hyperspace_cloud_set_origin },
+		{ "GetHyperspaceOrigin", l_hyperspace_cloud_get_origin },
+		{ "GetHyperspaceDestination", l_hyperspace_cloud_get_destination },
 
 		{ 0, 0 }
 	};
