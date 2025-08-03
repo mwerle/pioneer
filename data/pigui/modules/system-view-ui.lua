@@ -569,6 +569,7 @@ function makePopup()
 		local isObject = popup_object.type == Projectable.OBJECT
 		local isSystemBody = isObject and popup_object.base == Projectable.SYSTEMBODY
 		local isShip = isObject and not isSystemBody and popup_object.ref:IsShip()
+		local isCloud = isObject and not isSystemBody and popup_object.ref:IsHyperspaceCloud()
 		ui.text(getLabel(popup_object))
 		ui.separator()
 		if isOrrery and ui.selectable(lc.CENTER, false, {}) then
@@ -576,9 +577,12 @@ function makePopup()
 			systemView:SetSelectedObject(popup_object.type, popup_object.base, popup_object.ref)
 			systemView:ViewSelectedObject()
 		end
-		if (isShip or isSystemBody and popup_object.ref.physicsBody) and ui.selectable(lc.SET_AS_TARGET, false, {}) then
+		if (isShip or isCloud or isSystemBody and popup_object.ref.physicsBody) and ui.selectable(lc.SET_AS_TARGET, false, {}) then
 			if isSystemBody then
 				player:SetNavTarget(popup_object.ref.physicsBody)
+				ui.playSfx("OK")
+			elseif isCloud then
+				player:SetNavTarget(popup_object.ref)
 				ui.playSfx("OK")
 			else
 				if combatTarget == popup_object.ref then player:SetCombatTarget(nil) end
@@ -680,7 +684,7 @@ local function displayOnScreenObjects()
 			end
 		end
 
-		if mainObject.type == Projectable.OBJECT and (mainObject.base == Projectable.SYSTEMBODY or mainObject.base == Projectable.SHIP or mainObject.base == Projectable.PLAYER) then
+		if mainObject.type == Projectable.OBJECT and (mainObject.base == Projectable.SYSTEMBODY or mainObject.base == Projectable.SHIP or mainObject.base == Projectable.PLAYER or mainObject.base == Projectable.OBJECT) then
 			-- mouse release handler for right button
 			if mouseover then
 				if not ui.isAnyWindowHovered() and ui.isMouseReleased(1) then
@@ -752,7 +756,7 @@ end
 function Windows.objectInfo.ShouldShow()
 	local obj = systemView:GetSelectedObject()
 
-	if obj.type ~= Projectable.OBJECT or obj.base ~= Projectable.SHIP and obj.base ~= Projectable.SYSTEMBODY then
+	if obj.type ~= Projectable.OBJECT or obj.base ~= Projectable.SHIP and obj.base ~= Projectable.SYSTEMBODY and obj.base ~= Projectable.BODY then
 		return false
 	end
 
@@ -842,7 +846,7 @@ function Windows.objectInfo:Show()
 			--prevents additional flickering
 			self.data = data
 
-		elseif obj.ref:IsShip() then -- physical body
+		elseif body:IsShip() then -- physical body
 			---@cast body Ship
 			-- TODO: the advanced target scanner should add additional data here,
 			-- but we really do not want to hardcode that here. there should be
@@ -855,6 +859,21 @@ function Windows.objectInfo:Show()
 				table.insert(data, { name = luc.HYPERDRIVE, value = hd and hd:GetName() or lc.NO_HYPERDRIVE })
 				table.insert(data, { name = luc.MASS, value = Format.MassTonnes(body.staticMass) })
 				table.insert(data, { name = luc.CARGO, value = Format.MassTonnes(body.usedCargo) })
+			end
+
+		elseif body:IsHyperspaceCloud() then -- hyperspace cloud
+			---@cast body HyperspaceCloud
+			---TODO: have multiple levels of hyperspace cloud analysers
+			if (player["hypercloud_analyzer_cap"] or 0) > 0 then
+				local ship = body:GetShip()
+				local _,destName = ship:GetHyperspaceDestination()
+				local date = ui.Format.Datetime(body:GetDueDate())
+				table.insert(data, { name = luc.SHIP_TYPE, value = ship:GetShipType() })
+				table.insert(data, { name = luc.HUD_MASS, value = Format.MassTonnes(ship.staticMass) })
+				table.insert(data, { name = "Arrival Date", value = date })
+				if not body:IsArrival() then
+					table.insert(data, { name = "Destination", value = destName })
+				end
 			end
 		else
 			data = {}
