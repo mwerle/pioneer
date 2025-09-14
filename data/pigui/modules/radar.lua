@@ -392,8 +392,10 @@ local function displayRadar()
 	-- popup functions
 	--
 	ui.popup("radartargetselector", function()
+		local i = 0
 		for k,v in pairs(popup_targets) do
-			if ui.selectable(v.label) then
+			i = i + 1
+			if ui.selectable(v.label .. "##" .. i) then
 				onTargetClicked(v)
 				radar_popup_displayed = false
 			end
