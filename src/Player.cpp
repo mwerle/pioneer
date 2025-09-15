@@ -219,9 +219,12 @@ void Player::OnEnterHyperspace()
 	Pi::game->WantHyperspace();
 }
 
+static int skipUpdates = 0;
+
 void Player::OnEnterSystem()
 {
 	m_controller->SetFlightControlState(CONTROL_MANUAL);
+	skipUpdates = 10;
 }
 
 //temporary targeting stuff
@@ -289,8 +292,20 @@ void Player::OnCockpitActivated()
 		m_cockpit->OnActivated(this);
 }
 
+void Player::TimeStepUpdate(const float timeStep)
+{
+	if (skipUpdates > 0) {
+		skipUpdates--;
+		return;
+	}
+	Ship::TimeStepUpdate(timeStep);
+}
+
 void Player::StaticUpdate(const float timeStep)
 {
+	if (skipUpdates > 0) {
+		return;
+	}
 	Ship::StaticUpdate(timeStep);
 
 	// now insert the latest value

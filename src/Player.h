@@ -53,6 +53,7 @@ public:
 	ShipCockpit *GetCockpit() const { return m_cockpit.get(); }
 	void OnCockpitActivated();
 
+	virtual void TimeStepUpdate(const float timeStep) override;
 	virtual void StaticUpdate(const float timeStep) override;
 	virtual vector3d GetManeuverVelocity() const;
 	virtual int GetManeuverTime() const;

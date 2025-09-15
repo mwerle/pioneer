@@ -13,6 +13,10 @@ class JobQueue;
 class SyncJobQueue;
 class TaskGraph;
 
+namespace Profiler {
+	class Clock;
+};
+
 class Application {
 public:
 	Application();
@@ -83,6 +87,9 @@ public:
 
 	double GetTime() { return m_totalTime; }
 
+	// Resets the time since the last update
+	void ResetTime();
+
 	TaskGraph *GetTaskGraph() { return m_taskGraph.get(); }
 
 	JobQueue *GetSyncJobQueue();
@@ -150,4 +157,6 @@ private:
 
 	std::unique_ptr<SyncJobQueue> m_syncJobQueue;
 	std::unique_ptr<TaskGraph> m_taskGraph;
+
+	Profiler::Clock *m_runtime;
 };

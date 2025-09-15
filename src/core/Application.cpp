@@ -16,8 +16,13 @@
 
 static constexpr Uint32 SYNC_JOBS_PER_LOOP = 1;
 
-Application::Application() {}
-Application::~Application() {}
+Application::Application() {
+	m_runtime = new Profiler::Clock{};
+}
+Application::~Application() {
+	delete m_runtime;
+	m_runtime = nullptr;
+}
 
 void Application::QueueLifecycle(RefCountedPtr<Lifecycle> cycle)
 {
@@ -164,15 +169,14 @@ void Application::Run()
 		throw std::runtime_error("Application::Run must have a queued lifecycle object (did you forget to queue one?)");
 
 	// SoftStop updates the elapsed time measured by the clock, and continues to run the clock.
-	Profiler::Clock m_runtime{};
-	m_runtime.Start();
-	m_runtime.SoftStop();
-	m_totalTime = m_runtime.seconds();
+	m_runtime->Start();
+	m_runtime->SoftStop();
+	m_totalTime = m_runtime->seconds();
 
 	m_applicationRunning = true;
 	while (m_applicationRunning) {
-		m_runtime.SoftStop();
-		double thisTime = m_runtime.seconds();
+		m_runtime->SoftStop();
+		double thisTime = m_runtime->seconds();
 		m_deltaTime = thisTime - m_totalTime;
 		m_totalTime = thisTime;
 
@@ -234,4 +238,11 @@ void Application::Run()
 			Profiler::reset();
 #endif
 	}
+}
+
+void Application::ResetTime()
+{
+	m_runtime->SoftStop();
+	m_totalTime = m_runtime->seconds();
+	m_deltaTime = 0.0;
 }

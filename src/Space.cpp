@@ -524,6 +524,101 @@ void Space::GetHyperspaceExitParams(const SystemPath &source, const SystemPath &
 	}
 	assert(primary);
 
+	#if 1
+	// Implementation 1:
+	// - Place clouds on a line between the origin and destination system
+	// - Set the player ship to 0 velocity in the destination system
+
+	// calculate the unit vector between the source and destination systems
+	vector3d v = (sourcePos - destPos).Normalized();
+
+	// calculate the distance along the vector so that we are not inside the
+	// destination star, but also not too far away from it.
+	double dist = primary->GetSystemBody()->GetRadius() * 4.0;
+	dist = Clamp(dist, dist, 1*AU);
+
+	// Place the exit position on the vector
+	pos = dist * v;
+	// Jitter the exit position
+	{
+		auto x = Pi::rng.Double(5000, 100000); //dist * Pi::rng.Double(0.0, 0.0001);
+		auto y = Pi::rng.Double(5000, 100000); //dist * Pi::rng.Double(0.0, 0.0001);
+		auto z = Pi::rng.Double(5000, 100000); //dist * Pi::rng.Double(0.0, 0.0001);
+		pos += vector3d(x, y, z);
+	}
+	assert(pos.Length() > primary->GetSystemBody()->GetRadius());
+	pos += primary->GetPositionRelTo(GetRootFrame());
+
+	// Set the exit velocity to 0
+	// ISSUE: For some reason, by the time the hyperspace animation is over, the
+	// player ship is already moving at 36km/s straight towards the star. It's
+	// as if a LOT of physics time has elapsed after arrival..
+	vel = vector3d();
+
+	#elif 0
+	// calculate the vector between the source and destination systems
+	vector3d v = (destPos - sourcePos).Normalized();
+
+	// calculate the distance along the vector so that we are not inside the
+	// destination star, but also not too far away from it.
+	// Let's place it at 1.5 star radii, but no more than 1AU in case of huge stars
+	//double dist = primary->GetSystemBody()->GetRadius() * 1.5;
+	//dist = Clamp(dist, dist, 1*AU);
+
+	// calculate target distance to primary body relative to body's mass and radius
+	const double max_orbit_vel = 100e3;
+	double dist = G * primary->GetSystemBody()->GetMass() /
+		(max_orbit_vel * max_orbit_vel);
+
+	// ensure an absolute minimum and an absolute maximum distance
+	// the minimum distance from the center of the star should not be less than the radius of the star
+	dist = Clamp(dist, primary->GetSystemBody()->GetRadius() * 1.1, primary->GetSystemBody()->GetRadius() * 2.0);
+	pos = dist * v;
+
+	// The position orientation should be perpendicular to the line between
+	// source and destination
+	vector3d a{ MathUtil::OrthogonalDirection(v) };
+	vector3d b{ v.Cross(a) };
+	// TODO: jitter the position in a sphere around the calculated position
+	assert(pos.Length() > primary->GetSystemBody()->GetRadius());
+	pos += primary->GetPositionRelTo(GetRootFrame());
+
+	//vel = v * sqrt(G * primary->GetSystemBody()->GetMass() / dist);
+	vel = vector3d();
+	#elif 1
+	// calculate distance to primary body relative to body's mass and radius
+	const double max_orbit_vel = 100e3;
+	double dist = G * primary->GetSystemBody()->GetMass() /
+		(max_orbit_vel * max_orbit_vel);
+
+	// ensure an absolute minimum and an absolute maximum distance
+	// the minimum distance from the center of the star should not be less than the radius of the star
+	dist = Clamp(dist, primary->GetSystemBody()->GetRadius() * 1.1, std::max(primary->GetSystemBody()->GetRadius() * 1.1, 100 * AU));
+
+	// point velocity vector along the line from source to dest,
+	// make exit position perpendicular to it,
+	// add random component to exit position,
+	// set velocity for (almost) circular orbit
+	vel = (destPos - sourcePos).Normalized();
+	{
+		vector3d a{ MathUtil::OrthogonalDirection(vel) };
+		vector3d b{ vel.Cross(a) };
+		//vector3d p{ MathUtil::RandomPointOnCircle(0.2) };
+		//pos = p.x * a + p.y * b;
+		pos = a + b;
+	}
+	pos *= dist;
+	{
+		float x = dist * Pi::rng.Double(0, 0.001);
+		float y = dist * Pi::rng.Double(0, 0.001);
+		float z = dist * Pi::rng.Double(0, 0.001);
+		pos += vector3d(x, y, z);
+	}
+	vel *= sqrt(G * primary->GetSystemBody()->GetMass() / dist);
+
+	assert(pos.Length() > primary->GetSystemBody()->GetRadius());
+	pos += primary->GetPositionRelTo(GetRootFrame());
+	#else
 	// calculate distance to primary body relative to body's mass and radius
 	const double max_orbit_vel = 100e3;
 	double dist = G * primary->GetSystemBody()->GetMass() /
@@ -549,6 +644,7 @@ void Space::GetHyperspaceExitParams(const SystemPath &source, const SystemPath &
 
 	assert(pos.Length() > primary->GetSystemBody()->GetRadius());
 	pos += primary->GetPositionRelTo(GetRootFrame());
+	#endif
 }
 
 Body *Space::FindNearestTo(const Body *b, ObjectType t) const

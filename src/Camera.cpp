@@ -331,6 +331,10 @@ void Camera::Draw(const Body *excludeBody)
 	for (std::list<BodyAttrs>::iterator i = m_sortedBodies.begin(); i != m_sortedBodies.end(); ++i) {
 		BodyAttrs *attrs = &(*i);
 
+		if (isnan(attrs->viewCoords.Length())) {
+			continue;
+		}
+
 		// explicitly exclude a single body if specified (eg player)
 		if (attrs->body == excludeBody)
 			continue;

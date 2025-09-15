@@ -575,10 +575,11 @@ void Game::SwitchToNormalSpace()
 	vector3d pos, vel;
 	m_space->GetHyperspaceExitParams(m_hyperspaceSource, m_hyperspaceDest, pos, vel);
 	m_player->SetPosition(pos);
-	m_player->SetVelocity(vel);
+	//m_player->SetVelocity(vel);
+	m_player->SetVelocity(vector3d(0, 0, -100.0));
 
 	// orient ship in direction of travel
-	{
+	if (vel.Length() > 0.1) {
 		vector3d oz = -vel.Normalized();
 		vector3d ox = MathUtil::OrthogonalDirection(vel);
 		vector3d oy = oz.Cross(ox).Normalized();
@@ -690,6 +691,9 @@ void Game::SwitchToNormalSpace()
 	// HACK: we call RebuildObjectTrees to make the internal state of CollisionSpace valid
 	// This is absolutely not our job and CollisionSpace should be redesigned to fix this.
 	Frame::GetFrame(m_player->GetFrame())->GetCollisionSpace()->RebuildObjectTrees();
+
+	// Reset time-step to avoid running the physics simulation since we entered hyperspace
+	//Pi::GetApp()->ResetTime();
 }
 
 const float Game::s_timeAccelRates[] = {
